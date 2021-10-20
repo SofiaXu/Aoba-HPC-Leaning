@@ -190,6 +190,7 @@ OpenMP 归约（类似与 C# 的 PLINQ 最后的 Sum Count 之类的操作）
 
 ### 代码练习
 > 所有代码均使用 MSVC 142 进行编译，并在 Windows 10 平台上运行通过
+
 输出多个“Hello, world!”与当前线程编号:
 ```
 #include <omp.h> // OpenMP 库
