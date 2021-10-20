@@ -75,3 +75,253 @@
 - 内存层次结构或堆栈由内存存储技术层组成，每层在反应贷款和延迟的内存容量、成本和周期之间进行不同的权衡
 - 在现代 SMP 中高速缓存通常不是单层高速储存而是多层，以实现速度和大小的最佳平衡。
 
+## 第七章 OpenMP 的基础
+### 总结
+- OpenMP 可用 Fortran 和 C 等语言
+- OpenMP 提供 Fork-Join 模型管理线程
+- OpenMP 提供了通过系统变量调整运行参数的选项
+- Visual Studio 2019 中可能需要手动在项目属性中设置 /openmp 选项以启动对 OpenMP 的支持
+
+### 代码笔记
+OpenMP 代码块
+```
+#pragma omp parallel
+{
+
+}
+```
+OpenMP 代码块指定线程私有变量
+```
+#pragma omp parallel private(value)
+{
+
+}
+```
+OpenMP 循环
+```
+#pragma omp parallel
+{
+    #pragma omp for
+    for (int i = 0; i < length; i++)
+    {
+
+    }
+}
+```
+OpenMP 循环指定分配
+```
+#pragma omp parallel 
+{
+    #pragma omp for schedule(static, chunk)
+    for (int i = 0; i < length; i++)
+    {
+
+    }
+}
+```
+OpenMP 多任务并行
+```
+#pragma omp parallel
+{
+    #pragma omp sections
+    {
+        {
+            // 第一个任务
+        }
+        #pragma omp section
+        {
+            // 第二个任务
+        }
+        #pragma omp section
+        {
+            // 第三个任务
+        }
+    }
+}
+```
+OpenMP 线程安全保护
+```
+#pragma omp parallel
+{
+    #pragma omp critical
+    {
+        // 同步运行过程
+    }
+}
+```
+OpenMP 仅限主线程执行
+```
+#pragma omp parallel
+{
+    #pragma omp master
+    {
+        // 运行过程
+    }
+}
+```
+OpenMP 阻塞等待
+```
+#pragma omp parallel
+{
+    #pragma omp barrier
+}
+```
+OpenMP 单次执行指令（仅限一个线程运行）
+```
+#pragma omp parallel
+{
+    #pragma omp single
+    {
+        // 运行过程
+    }
+}
+```
+OpenMP 归约（类似与 C# 的 PLINQ 最后的 Sum Count 之类的操作）
+```
+#pragma omp parallel
+{
+    #pragma omp reduction(op : result)
+    {
+        result = result op expression // op 即 操作符（+、-、*、/、&、^、|），express 即表达式
+        // 即该行语句对应 PLINQ 或者 Stream API 中的 Lambda 表达式
+    }
+}
+```
+
+### 代码练习
+> 所有代码均使用 MSVC 142 进行编译，并在 Windows 10 平台上运行通过
+输出多个“Hello, world!”与当前线程编号:
+```
+#include <omp.h> // OpenMP 库
+#include <iostream> // 标准输入输出
+
+int main() // 应用程序主入口点
+{
+#pragma omp parallel // OpenMP 分枝起点
+	{
+		printf_s("Hello World... from thread = %d\n", omp_get_thread_num());
+	} // 分枝终点
+}
+```
+并行向量加法：
+```
+#include <omp.h>
+#include <iostream>
+
+int main()
+{
+	const int max = 20;
+	int i;
+	double a[max], b[max], result[max];
+
+	for (i = 0; i < max; i++)
+	{
+		a[i] = 1.0 * i;
+		b[i] = 2.0 * i;
+	}
+
+#pragma omp parallel
+	{
+#pragma omp for // 并行 for 循环
+		for (i = 0; i < max; i++)
+		{
+			result[i] = a[i] + b[i];
+		}
+	}
+
+	printf_s("Test result[19] = %g/n", result[19]);
+}
+```
+简化版本：
+```
+#include <omp.h>
+#include <iostream>
+
+int main()
+{
+	const int max = 20;
+	int i;
+	double a[max], b[max], result[max];
+
+	for (i = 0; i < max; i++)
+	{
+		a[i] = 1.0 * i;
+		b[i] = 2.0 * i;
+	}
+
+#pragma omp parallel for
+	for (i = 0; i < max; i++)
+	{
+		result[i] = a[i] + b[i];
+	}
+
+	printf_s("Test result[19] = %g/n", result[19]);
+}
+```
+设置线程私有变量与查看当前运行线程 id
+```
+#include <omp.h>
+#include <iostream>
+
+int main()
+{
+	const int max = 20;
+	int i;
+	double a[max], b[max], result[max];
+
+	for (i = 0; i < max; i++)
+	{
+		a[i] = 1.0 * i;
+		b[i] = 2.0 * i;
+	}
+
+	int threadid;
+
+#pragma omp parallel private(threadid) // 设置线程私有变量
+	{
+		threadid = omp_get_thread_num();
+#pragma omp for
+		for (i = 0; i < max; i++)
+		{
+			result[i] = a[i] + b[i];
+			printf_s("Thread Id: %d Index: %d\n", threadid, i);
+		}
+	}
+
+	printf_s("Test result[19] = %g/n", result[19]);
+}
+```
+设置每个线程执行的次数
+```
+#include <omp.h>
+#include <iostream>
+
+int main()
+{
+	const int max = 20;
+	int i;
+	double a[max], b[max], result[max];
+
+	for (i = 0; i < max; i++)
+	{
+		a[i] = 1.0 * i;
+		b[i] = 2.0 * i;
+	}
+
+	int threadid;
+	int chunk = 3; // 初始化执行次数
+
+#pragma omp parallel private(threadid)
+	{
+		threadid = omp_get_thread_num();
+#pragma omp for schedule(static, chunk) // 通过 schedule 语句设定每个线程执行的数量，通过静态划分
+		for (i = 0; i < max; i++)
+		{
+			result[i] = a[i] + b[i];
+			printf_s("Thread Id: %d Index: %d\n", threadid, i);
+		}
+	}
+
+	printf_s("Test result[19] = %g/n", result[19]);
+}
+```
