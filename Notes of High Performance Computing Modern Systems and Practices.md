@@ -327,7 +327,7 @@ int main()
 }
 ```
 
-## 第七章 MPI的基础
+## 第八章 MPI的基础
 ### 总结
 - MPI 是一个社区驱动的规范，还在不断发展，目前版本为 4.0（2021），官网为 [MPI Forum](https://www.mpi-forum.org/)
 - MPI 是一系列 API 规范而不是一个库
