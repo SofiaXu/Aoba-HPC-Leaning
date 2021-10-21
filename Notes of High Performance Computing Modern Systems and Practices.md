@@ -84,21 +84,21 @@
 
 ### 代码笔记
 OpenMP 代码块
-```
+```cpp
 #pragma omp parallel
 {
 
 }
 ```
 OpenMP 代码块指定线程私有变量
-```
+```cpp
 #pragma omp parallel private(value)
 {
 
 }
 ```
 OpenMP 循环
-```
+```cpp
 #pragma omp parallel
 {
     #pragma omp for
@@ -109,7 +109,7 @@ OpenMP 循环
 }
 ```
 OpenMP 循环指定分配
-```
+```cpp
 #pragma omp parallel 
 {
     #pragma omp for schedule(static, chunk)
@@ -120,7 +120,7 @@ OpenMP 循环指定分配
 }
 ```
 OpenMP 多任务并行
-```
+```cpp
 #pragma omp parallel
 {
     #pragma omp sections
@@ -140,7 +140,7 @@ OpenMP 多任务并行
 }
 ```
 OpenMP 线程安全保护
-```
+```cpp
 #pragma omp parallel
 {
     #pragma omp critical
@@ -150,7 +150,7 @@ OpenMP 线程安全保护
 }
 ```
 OpenMP 仅限主线程执行
-```
+```cpp
 #pragma omp parallel
 {
     #pragma omp master
@@ -160,14 +160,14 @@ OpenMP 仅限主线程执行
 }
 ```
 OpenMP 阻塞等待
-```
+```cpp
 #pragma omp parallel
 {
     #pragma omp barrier
 }
 ```
 OpenMP 单次执行指令（仅限一个线程运行）
-```
+```cpp
 #pragma omp parallel
 {
     #pragma omp single
@@ -177,7 +177,7 @@ OpenMP 单次执行指令（仅限一个线程运行）
 }
 ```
 OpenMP 归约（类似与 C# 的 PLINQ 最后的 Sum Count 之类的操作）
-```
+```cpp
 #pragma omp parallel
 {
     #pragma omp reduction(op : result)
@@ -192,7 +192,7 @@ OpenMP 归约（类似与 C# 的 PLINQ 最后的 Sum Count 之类的操作）
 > 所有代码均使用 MSVC 142 进行编译，并在 Windows 10 平台上运行通过
 
 输出多个“Hello, world!”与当前线程编号:
-```
+```cpp
 #include <omp.h> // OpenMP 库
 #include <iostream> // 标准输入输出
 
@@ -205,7 +205,7 @@ int main() // 应用程序主入口点
 }
 ```
 并行向量加法：
-```
+```cpp
 #include <omp.h>
 #include <iostream>
 
@@ -234,7 +234,7 @@ int main()
 }
 ```
 简化版本：
-```
+```cpp
 #include <omp.h>
 #include <iostream>
 
@@ -260,7 +260,7 @@ int main()
 }
 ```
 设置线程私有变量与查看当前运行线程 id
-```
+```cpp
 #include <omp.h>
 #include <iostream>
 
@@ -293,7 +293,7 @@ int main()
 }
 ```
 设置每个线程执行的次数
-```
+```cpp
 #include <omp.h>
 #include <iostream>
 
@@ -324,5 +324,180 @@ int main()
 	}
 
 	printf_s("Test result[19] = %g/n", result[19]);
+}
+```
+
+## 第七章 MPI的基础
+### 总结
+- MPI 是一个社区驱动的规范，还在不断发展，目前版本为 4.0（2021），官网为 [MPI Forum](https://www.mpi-forum.org/)
+- MPI 是一系列 API 规范而不是一个库
+- 在 Windows 上使用 Microsoft MPI
+- MPICH 是第一个实现 MPI 标准的简缩版
+- MPI 的关键要素是点对点通信和聚合通信
+- MPI 可以进行非阻塞通信
+- Microsoft MPI 参考文档：https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi
+### 代码笔记
+MPI 初始化
+```cpp
+MPI_Init(const int* argc, char*** argv)
+```
+MPI 终止
+```cpp
+MPI_Finalize()
+```
+MPI 获取当前进程 ID
+```cpp
+MPI_Comm_rank(MPI_Comm comm, int* rank)
+```
+MPI 获取总进程数
+```cpp
+MPI_Comm_size(MPI_Comm comm, int* size)
+```
+MPI 发送、接收消息
+```cpp
+MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
+MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status* status)
+```
+MPI 进程同步
+```cpp
+MPI_Barrier(MPI_Comm comm)
+```
+MPI 广播、分散、收集
+```cpp
+MPI_Bcast(void* buffer, int count, MPI_Datatype datatype, int root,MPI_Comm comm);
+MPI_Scatter(const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm);
+MPI_Gather(const void* sendbuf, int sendcount, MPI_Datatype sendtype,void* recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm);
+```
+MPI 归约
+```cpp
+MPI_Reduce(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm);
+```
+MPI 全局归约
+```cpp
+MPI_Allreduce(const void* sendbuf, void* recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
+```
+MPI 全局到全局
+```cpp
+MPI_Alltoall(const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm);
+```
+MPI 非阻塞通信
+```cpp
+MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request* request);
+MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Request* request);
+```
+
+### 代码练习
+> 所有代码均使用 MSVC 142 进行编译，基于Microsoft MPI 10.1.1，并在 Windows 10 平台上运行通过
+
+初始化并显示进程 ID 和进程大小
+```cpp
+#include <iostream>
+#include <mpi.h> // MPI 头文件
+
+int main(int argc, char **argv)
+{
+	int rank, size;
+	MPI_Init(&argc, &argv); // MPI 初始化
+	MPI_Comm_rank(MPI_COMM_WORLD/*获取全局对象枚举*/, &rank); // 获取进程 ID
+	MPI_Comm_size(MPI_COMM_WORLD, &size); // 获取总进程数
+	printf_s("Hello from rank %d out of %d processes in MPI_COMM_WORLD\n", rank, size);
+	MPI_Finalize();
+}
+```
+发送并接收消息
+```cpp
+#include <iostream>
+#include <mpi.h>
+
+int main(int argc, char **argv)
+{
+	int rank, size;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+	int message[2];
+	int dest, src;
+	int tag = 0;
+	MPI_Status status;
+
+	if (size == 1)
+	{
+		// 在进程总数小于1时取消通信
+		printf_s("This example need more than one thread.");
+		MPI_Finalize();
+		return -1;
+	}
+
+	if (rank != 0)
+	{
+		// 当前进程不为 0 号进程时发送数据
+		message[0] = rank;
+		message[1] = size;
+		dest = 0;
+		MPI_Send(message, 2, MPI_INT, dest, tag, MPI_COMM_WORLD);
+	}
+	else
+	{
+		// 当前进程为 0 号进程时遍历进程接收数据
+		for (src = 1; src < size; src++)
+		{
+			MPI_Recv(message, 2, MPI_INT, src, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			printf_s("Hello from process %d of %d\n", message[0], message[1]);
+		}
+	}
+
+	MPI_Finalize();
+}
+```
+非阻塞发送和接收
+```cpp
+#include <iostream>
+#include <mpi.h>
+
+int main(int argc, char **argv)
+{
+	int rank, size;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+	int a, b;
+	int dest, src;
+	int tag = 0;
+	MPI_Status status;
+	MPI_Request send_request, recv_request;
+
+	if (size != 2)
+	{
+		// 本例子只有两个进程故先判断当前总进程数
+		printf_s("This example need 2 threads only.");
+		MPI_Finalize();
+		return -1;
+	}
+
+	if (rank == 0)
+	{
+		// 设定一个 a 作为发送值
+		a = 1234;
+		MPI_Isend(&a, 1, MPI_INT, 1, tag, MPI_COMM_WORLD, &send_request); // 设置非阻塞发送
+		MPI_Irecv(&b, 1, MPI_INT, 1, tag, MPI_COMM_WORLD, &recv_request); // 设置非阻塞接收
+
+		MPI_Wait(&send_request, &status); // 等待发送
+		MPI_Wait(&recv_request, &status); // 等待接收
+		printf_s("Process %d received value %d.\n", rank, b);
+	}
+	else
+	{
+		a = 5678;
+		MPI_Isend(&a, 1, MPI_INT, 0, tag, MPI_COMM_WORLD, &send_request);
+		MPI_Irecv(&b, 1, MPI_INT, 0, tag, MPI_COMM_WORLD, &recv_request);
+
+		MPI_Wait(&send_request, &status);
+		MPI_Wait(&recv_request, &status);
+		printf_s("Process %d received value %d.\n", rank, b);
+	}
+
+	MPI_Finalize();
 }
 ```
