@@ -14,3 +14,14 @@
 ## 架构设计
 ![PluginSystemInRustArchitecture](PluginSystemInRustArchitecture.svg)
 
+## 文件夹布局
+Resource Center
+```
+root
+|-- src
+    |-- controllers // controller for grpc
+    |-- application // aplication core
+        |-- services // services of server
+    |-- infrastructure // db connecters and tools
+    |-- main.js // application entry point
+```
